@@ -1,0 +1,40 @@
+package main
+
+import (
+	"database/sql"
+	"errors"
+	"log"
+	"net/http"
+	"os"
+
+	"modernc.org/sqlite"
+	_ "modernc.org/sqlite"
+
+	models "dikobra3/telegramBotSupport_models"
+)
+
+var db *sql.DB
+
+func initDB() error {
+	var err error
+	db, err = sql.Open("sqlite", "messages.db")
+	if err != nil {
+		log.Fatal("Error initializing database: ", err)
+	}
+
+	return db.Ping()
+}
+
+func insertMessage(message models.Message) {
+	db.Ping()
+
+	addUser(message.From)
+	addChat(message.Chat)
+
+	_, err := db.Exec("INSERT INTO message VALUES ($1, $2, $3, $4, $5)",
+		message.Message_id, message.Chat.Id, message.From.Id, message.Date, message.Text)
+
+	if err != nil {
+		log.Fatal("Error message insert: ", err)
+	}
+}

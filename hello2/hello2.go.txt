@@ -1,0 +1,38 @@
+package main
+
+import "fmt"
+
+for update := range updates {
+    go reply(bot, update)
+}
+
+func openDatabase() *sql.DB {
+    db, err := sql.Open("sqlite3", "./since.db")
+    if err != nil {
+        log.Panic(err)
+    }
+
+     _, err = db.Exec("CREATE TABLE IF NOT EXISTS events (" +
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+        "user INTEGER, " +
+        "name TEXT, " +
+        "date INTEGER);")
+
+     if err != nil {
+        log.Panic(err)
+    }
+
+     return db
+}
+
+func store(message *tgbotapi.Message, db *sql.DB) {
+    _, err := db.Exec("INSERT INTO events (user, name, date) VALUES ($1, $2, $3);",
+        message.From.ID,
+        message.Text,
+        message.Date)
+    if err != nil {
+        log.Panic(err)
+    }
+}
+
+store(update.Message, db)
